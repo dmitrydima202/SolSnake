@@ -1,0 +1,95 @@
+// ===========================================================================
+// colors.js — skins and food palettes.
+// ===========================================================================
+
+// Distinct, attractive skin colors. Index = skin id sent over the wire.
+export const SKINS = [
+  { name: 'Red',        main: '#FF4444', shade: '#B31E1E', glow: '#FF7777' },
+  { name: 'Blue',       main: '#3388FF', shade: '#1E55B3', glow: '#66AAFF' },
+  { name: 'Green',      main: '#44CC44', shade: '#1E8C1E', glow: '#77FF77' },
+  { name: 'Yellow',     main: '#FFD700', shade: '#B39500', glow: '#FFE94D' },
+  { name: 'Orange',     main: '#FF8C1A', shade: '#B35F0E', glow: '#FFB355' },
+  { name: 'Light Blue', main: '#55CCFF', shade: '#2E8CB3', glow: '#99E0FF' },
+  { name: 'Sunset',     main: 'combo',   shade: '#B35F0E', glow: '#FFFFFF', head: '#FF8C1A',
+    colors: ['#FF8C1A', '#F0F0F0', '#55CCFF'] },
+  { name: 'Ocean',      main: 'combo',   shade: '#1E55B3', glow: '#99E0FF', head: '#55CCFF',
+    colors: ['#55CCFF', '#FFD700', '#3388FF'] },
+  { name: 'Sandy',      main: 'combo',   shade: '#8B6914', glow: '#FFD700', head: '#FF8C1A',
+    colors: ['#FF8C1A', '#8B6914', '#D2B48C', '#D2B48C', '#8B6914'] },
+  { name: 'Frost',      main: 'combo',   shade: '#0E6B6B', glow: '#7FFFFF', head: '#00CED1',
+    colors: ['#00CED1', '#20B2AA', '#20B2AA', '#00CED1'] },
+  { name: 'Crimson',    main: 'combo',   shade: '#8B1A1A', glow: '#FF6666', head: '#3388FF',
+    colors: ['#FF4444', '#3388FF', '#FF4444', '#3388FF'] },
+  { name: 'Royal',      main: 'combo',   shade: '#1E55B3', glow: '#66AAFF', head: '#3388FF',
+    colors: ['#3388FF', '#55CCFF', '#FF6699', '#3388FF'] },
+  { name: 'Dark Green', main: 'combo',   shade: '#063006', glow: '#22aa22', head: '#0a4a0a',
+    colors: ['#0a4a0a', '#1a6b1a', '#1a6b1a'] },
+  { name: 'Lavender',    main: 'combo',   shade: '#7B68AE', glow: '#D8B4FE', head: '#9370DB',
+    colors: ['#9370DB', '#F5F0E8', '#F5F0E8', '#9370DB', '#F5F0E8'] },
+  { name: 'Rainbow',     main: 'combo',   shade: '#2E7D32', glow: '#FFEB3B', head: '#4CAF50',
+    colors: ['#4CAF50', '#FFEB3B', '#FF9800', '#FF9800', '#FFEB3B', '#4CAF50', '#2196F3', '#FF1744'] },
+  { name: 'Neon',        main: 'combo',   shade: '#1A0033', glow: '#FF00FF', head: '#00FF88',
+    colors: ['#FF00FF', '#00FFFF', '#00FF88', '#FFFF00', '#FF00FF', '#00FFFF', '#00FF88'] },
+];
+
+// Skin prices in coins. 0 = free (unlocked by default).
+export const SKIN_PRICES = [
+  0,      // 0 Red
+  0,      // 1 Blue
+  0,      // 2 Green
+  0,      // 3 Yellow
+  500,    // 4 Orange
+  500,    // 5 Light Blue
+  2500,   // 6 Sunset
+  2500,   // 7 Ocean
+  1000,   // 8 Sandy
+  1000,   // 9 Frost
+  2500,   // 10 Crimson
+  5000,   // 11 Royal
+  5000,   // 12 Dark Green
+  5000,   // 13 Lavender
+  10000,  // 14 Rainbow
+  25000,  // 15 Neon
+];
+
+export const SKIN_TIERS = [
+  { name: 'Common',    color: '#aaaaaa', min: 0 },
+  { name: 'Uncommon',  color: '#6ee84a', min: 500 },
+  { name: 'Rare',      color: '#3388FF', min: 1000 },
+  { name: 'Epic',      color: '#bb44ff', min: 2500 },
+  { name: 'Legendary', color: '#ff8800', min: 5000 },
+  { name: 'Mythic',    color: '#ff2266', min: 10000 },
+];
+
+export function skinTier(price) {
+  for (let i = SKIN_TIERS.length - 1; i >= 0; i--) {
+    if (price >= SKIN_TIERS[i].min) return SKIN_TIERS[i];
+  }
+  return SKIN_TIERS[0];
+}
+
+export const RAINBOW_STOPS = [
+  '#ff5252', '#ff9a1f', '#ffd24d', '#7CFC4D',
+  '#2CE0B0', '#19E0FF', '#5CB8FF', '#9D6BFF', '#FF3DC4',
+];
+
+// Food pellet colors (random pick).
+export const FOOD_COLORS = [
+  '#19E0FF', '#FF3DC4', '#FFD24D', '#7CFC4D',
+  '#9D6BFF', '#FF9A1F', '#2CE0B0', '#FF5C5C',
+];
+
+// Death food uses brighter / larger glow sprites.
+export const FOOD_DEATH_COLOR = '#FFEA66';
+
+export function skinById(id) {
+  return SKINS[id % SKINS.length];
+}
+
+export function randomSkinId() {
+  return Math.floor(Math.random() * SKINS.length);
+}
+
+export function randomFoodColor() {
+  return FOOD_COLORS[(Math.random() * FOOD_COLORS.length) | 0];
+}
