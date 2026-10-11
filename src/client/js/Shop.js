@@ -1,153 +1,76 @@
-import { SKINS, SKIN_PRICES, SKIN_TIERS, skinTier } from '../../shared/colors.js';
+import { SKINS, SKIN_PRICES, RAINBOW_STOPS, skinTier } from '../../shared/colors.js';
+import { displayStick } from './StickWallet.js';
+import { isEmbeddedInPlatform } from '@idosgames/wallet';
 
 export class Shop {
-  constructor(net, ui) {
-    this.net = net;
-    this.ui = ui;
-    this.coins = 0;
-    this.unlockedSkins = new Set([0, 1, 2, 3]);
-    this._onShopData = this._onShopData.bind(this);
-    this._onShopResult = this._onShopResult.bind(this);
-
-    // DOM
+  constructor(net, ui, wallet) {
+    this.net = net; this.ui = ui; this.wallet = wallet;
     this.screen = document.getElementById('shopScreen');
     this.grid = document.getElementById('shopGrid');
-    this.coinCount = document.getElementById('shopCoinCount');
-    this.dailyBtn = document.getElementById('dailyBtn');
     this.backBtn = document.getElementById('shopBackBtn');
-
     this.backBtn.addEventListener('click', () => this.hide());
-    this.dailyBtn.addEventListener('click', () => {
-      this.net.sendClaimDaily();
-    });
-
-    net.on('shopData', this._onShopData);
-    net.on('shopResult', this._onShopResult);
-
+    document.getElementById('stickConnectBtn').addEventListener('click', () => wallet.connect());
+    document.getElementById('stickSolflareBtn').addEventListener('click', () => wallet.connect('solflare'));
+    document.getElementById('stickRefreshBtn').addEventListener('click', () => wallet.refresh());
+    document.getElementById('stickDisconnectBtn').addEventListener('click', () => wallet.disconnect());
     this._buildGrid();
+    wallet.onChange(() => this._updateUI());
   }
-
-  _onShopData(d) {
-    this.coins = d.coins;
-    this.unlockedSkins = new Set(d.unlockedSkins.split(',').map(Number).filter(n => !isNaN(n)));
-    this._updateUI();
-    if (this.ui) this.ui.setUnlockedSkins(this.unlockedSkins);
-  }
-
-  _onShopResult(d) {
-    if (d.ok) {
-      this.coins = d.coins;
-      if (d.unlockedSkins) {
-        this.unlockedSkins = new Set(d.unlockedSkins.split(',').map(Number).filter(n => !isNaN(n)));
-      }
-    }
-    this._updateUI();
-    if (this.ui) this.ui.setUnlockedSkins(this.unlockedSkins);
-    if (d.msg) this._flashMsg(d.msg, d.ok);
-  }
-
   _buildGrid() {
-    this.grid.innerHTML = '';
-    for (let i = 0; i < SKINS.length; i++) {
-      const skin = SKINS[i];
-      const price = SKIN_PRICES[i];
-      const tier = skinTier(price);
-      const el = document.createElement('div');
-      el.className = 'shop-item';
-      el.dataset.skin = i;
-
-      // Swatch
-      const swatch = document.createElement('div');
-      swatch.className = 'shop-swatch';
-      if (skin.main === 'combo') {
-        swatch.style.background = `linear-gradient(135deg, ${skin.colors.join(', ')})`;
-      } else {
-        swatch.style.background = skin.main;
-      }
-      el.appendChild(swatch);
-
-      // Name
-      const name = document.createElement('div');
-      name.className = 'shop-item-name';
-      name.textContent = skin.name;
-      el.appendChild(name);
-
-      // Tier
-      const tierEl = document.createElement('div');
-      tierEl.className = 'shop-item-tier';
-      tierEl.textContent = tier.name;
-      tierEl.style.color = tier.color;
-      el.appendChild(tierEl);
-
-      // Price
-      const priceEl = document.createElement('div');
-      priceEl.className = 'shop-item-price';
-      priceEl.textContent = price === 0 ? 'FREE' : `${price}`;
-      el.appendChild(priceEl);
-
-      // Buy overlay
-      const overlay = document.createElement('div');
-      overlay.className = 'shop-buy-overlay';
-      if (price > 0) {
-        const buyBtn = document.createElement('button');
-        buyBtn.className = 'btn buy-btn';
-        buyBtn.textContent = `Buy ${price}`;
-        buyBtn.addEventListener('click', (e) => {
-          e.stopPropagation();
-          this.net.sendBuySkin(i);
-        });
-        overlay.appendChild(buyBtn);
-      }
-      el.appendChild(overlay);
-
-      this.grid.appendChild(el);
-    }
-  }
-
-  _updateUI() {
-    this.coinCount.textContent = this.coins.toLocaleString();
-    // Update coin display in HUD
-    const coinVal = document.getElementById('coinVal');
-    if (coinVal) coinVal.textContent = this.coins.toLocaleString();
-
-    // Update grid items
-    const items = this.grid.querySelectorAll('.shop-item');
-    items.forEach(el => {
-      const id = parseInt(el.dataset.skin);
-      const owned = this.unlockedSkins.has(id);
-      el.classList.toggle('owned', owned);
-      el.classList.toggle('locked', !owned);
-      const price = SKIN_PRICES[id];
-      el.classList.toggle('free', price === 0);
+    this.grid.replaceChildren();
+    SKINS.forEach((skin, i) => {
+      const price = SKIN_PRICES[i], tier = skinTier(price);
+      const el = document.createElement('button');
+      el.type = 'button'; el.className = 'shop-item'; el.dataset.skin = i;
+      el.setAttribute('aria-label', `${skin.name}: ${price ? `hold ${price.toLocaleString('en-US')} STICK` : 'free'}`);
+      const swatch = document.createElement('div'); swatch.className = 'shop-swatch';
+      swatch.style.background = skin.main === 'combo' || skin.main === 'rainbow'
+        ? `linear-gradient(135deg, ${(skin.colors || RAINBOW_STOPS).join(', ')})` : skin.main;
+      const name = document.createElement('div'); name.className = 'shop-item-name'; name.textContent = skin.name;
+      const tierEl = document.createElement('div'); tierEl.className = 'shop-item-tier'; tierEl.textContent = tier.name; tierEl.style.color = tier.color;
+      const priceEl = document.createElement('div'); priceEl.className = 'shop-item-price';
+      priceEl.textContent = price ? `Hold ${price.toLocaleString('en-US')} STICK` : 'FREE';
+      const state = document.createElement('div'); state.className = 'shop-item-access';
+      el.append(swatch, name, tierEl, priceEl, state);
+      el.addEventListener('click', () => {
+        if (this.wallet.unlocked.has(i)) { this.ui._selectSkin(i); this._updateUI(); }
+        else {
+          this.wallet.status = this.wallet.address
+            ? `Hold at least ${price.toLocaleString('en-US')} STICK to use ${skin.name}.`
+            : 'Connect your wallet to verify your STICK balance.';
+          this.wallet.emit();
+        }
+      });
+      this.grid.append(el);
     });
   }
-
-  show() {
-    this.screen.classList.remove('hidden');
-    this.net.sendProfileRequest(); // refresh stats
+  _updateUI() {
+    const wallet = this.wallet;
+    this.ui.setUnlockedSkins(wallet.unlocked);
+    document.getElementById('shopCoinCount').textContent = displayStick(wallet.rawBalance);
+    document.getElementById('stickWalletAddress').textContent = wallet.address
+      ? `${wallet.address.slice(0, 6)}…${wallet.address.slice(-4)}` : 'Wallet not connected';
+    document.getElementById('stickWalletStatus').textContent = wallet.status;
+    document.getElementById('skinsWalletBalance').textContent = wallet.address
+      ? `Wallet balance: ${displayStick(wallet.rawBalance)} STICK` : 'Free skins are available without a wallet.';
+    const embedded = isEmbeddedInPlatform();
+    document.getElementById('stickConnectBtn').textContent = embedded ? 'Connect site wallet' : 'Connect Phantom';
+    for (const id of ['stickConnectBtn', 'stickSolflareBtn', 'stickRefreshBtn']) document.getElementById(id).disabled = wallet.busy;
+    document.getElementById('stickConnectBtn').classList.toggle('hidden', !!wallet.address);
+    document.getElementById('stickSolflareBtn').classList.toggle('hidden', !!wallet.address || embedded);
+    document.getElementById('stickRefreshBtn').classList.toggle('hidden', !wallet.address);
+    document.getElementById('stickDisconnectBtn').classList.toggle('hidden', !wallet.address);
+    for (const el of this.grid.children) {
+      const id = Number(el.dataset.skin), available = wallet.unlocked.has(id);
+      el.classList.toggle('owned', available); el.classList.toggle('locked', !available);
+      el.classList.toggle('free', SKIN_PRICES[id] === 0);
+      el.classList.toggle('selected', this.ui.selectedSkin === id);
+      el.querySelector('.shop-item-access').textContent = available
+        ? (this.ui.selectedSkin === id ? 'Selected' : 'Use skin') : 'Locked';
+    }
+    this.net.setSkin(this.ui.getSkin());
   }
-
-  hide() {
-    this.screen.classList.add('hidden');
-  }
-
-  isVisible() {
-    return !this.screen.classList.contains('hidden');
-  }
-
-  _flashMsg(msg, ok) {
-    // Quick toast
-    const toast = document.createElement('div');
-    toast.style.cssText = `
-      position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
-      padding: 12px 24px; border-radius: 8px; font-size: 14px; font-weight: 600;
-      z-index: 100; pointer-events: none;
-      background: ${ok ? 'rgba(110, 232, 74, 0.9)' : 'rgba(248, 113, 113, 0.9)'};
-      color: ${ok ? '#000' : '#fff'};
-      animation: toastFade 1.5s forwards;
-    `;
-    toast.textContent = msg;
-    document.body.appendChild(toast);
-    setTimeout(() => toast.remove(), 1500);
-  }
+  show() { this.screen.classList.remove('hidden'); if (this.wallet.address) void this.wallet.refresh(); }
+  hide() { this.screen.classList.add('hidden'); }
+  isVisible() { return !this.screen.classList.contains('hidden'); }
 }
