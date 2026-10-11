@@ -32,7 +32,7 @@ export const SKINS = [
     colors: ['#FF00FF', '#00FFFF', '#00FF88', '#FFFF00', '#FF00FF', '#00FFFF', '#00FF88'] },
 ];
 
-// Skin prices in coins. 0 = free (unlocked by default).
+// Minimum STICK held in the connected wallet. Tokens are not spent. 0 = free.
 export const SKIN_PRICES = [
   0,      // 0 Red
   0,      // 1 Blue
