@@ -2,25 +2,23 @@
 
 ## Completed prototype
 
-- Browser game published on iDos Games.
-- Local arena with bots.
-- Online room creation, code sharing, joining and leaving.
-- Two distinct guest clients checked in one online arena.
+- Browser game published on iDos Games, with local bots and room-code multiplayer.
+- Earlier two-client room gameplay checks.
+- Existing STICK mint selected; holding thresholds match former skin prices.
+- Official wallet SDK integration and CloudCode verified-wallet balance read.
+- Holder Shop published, with periodic refresh, expiry and free-skin fallback.
+- Six automated checks and production build validation.
 
-## Stage 1: wallet connection
+## Next: holder verification
 
-Choose the SNAKE mint and cosmetic thresholds. Connect a Solana wallet and verify address ownership with a fresh signed challenge.
+Check a real holder's message signature, balance read, positive unlock, wallet change, disconnect and balance drop end to end. No test account or temporary wallet was created for the completed checks, at the founder's request.
 
-## Stage 2: holder eligibility
+## Next: multiplayer reliability
 
-Read the selected mint balance, account for decimals, implement trusted eligibility checks, and wire the Shop to the resulting skin access. Define rechecks and behavior after balance changes.
+Check cross-network joining, host departure and eight-player load. Decide whether a dedicated simulation service is needed and how to enforce cosmetic entitlement beyond a modifiable client.
 
-## Stage 3: player testing
+## Next: player testing
 
-Check joining across networks, host departure, room stability and holder access. Invite small player groups and measure actual participation and repeat play before making traction claims.
+Invite small groups, measure actual participation and repeat play, and use that evidence to assess the cosmetic utility hypothesis. No traction, launch dates, budget or investment commitments are assumed.
 
-## Stage 4: holder beta
-
-Publish the wallet-enabled beta after testing. Decide whether larger public arenas need a dedicated simulation service.
-
-Stages are proposed milestones, without committed launch dates, a confirmed budget or investment commitments.
+The earlier SNAKE mint proposal is retired; the current game uses STICK attached to title FPC8NUE4.
