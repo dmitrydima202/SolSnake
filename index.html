@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>SolSnake</title>
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+  <!-- Game canvas (always present; menu overlays on top) -->
+  <canvas id="game"></canvas>
+
+  <!-- ===== Start menu ===== -->
+  <div id="menu" class="overlay center-overlay">
+    <div class="panel">
+      <h1 class="title">Sol<span>Snake</span></h1>
+      <canvas id="wormCanvas" width="300" height="60"></canvas>
+      <p class="subtitle">Eat, grow, and rule the arena</p>
+
+      <label class="field">
+        <span>Nickname</span>
+        <input id="nameInput" type="text" maxlength="16" placeholder="enter a name" autocomplete="off" />
+      </label>
+
+      <div class="menu-buttons">
+        <button id="playBtn" class="btn primary">Play</button>
+        <button id="onlineBtn" class="btn accent" aria-expanded="false">Play Online</button>
+        <div id="onlinePanel" class="room-panel hidden">
+          <div id="roomActions">
+            <button id="createRoomBtn" class="btn accent">Create room</button>
+            <form id="joinRoomForm" class="room-join">
+              <input id="roomCodeInput" aria-label="Room code" placeholder="Room code" maxlength="12" autocomplete="off" spellcheck="false" />
+              <button id="joinRoomBtn" class="btn">Join</button>
+            </form>
+          </div>
+          <div id="activeRoom" class="hidden">
+            <span>Room code</span>
+            <strong id="roomCodeDisplay"></strong>
+            <div class="room-join">
+              <button id="copyRoomBtn" class="btn accent">Copy code</button>
+              <button id="leaveRoomBtn" class="btn">Leave room</button>
+            </div>
+          </div>
+          <p id="onlineStatus" role="status">Create a room or enter a friend's code.</p>
+        </div>
+        <button id="shopBtn" class="btn gold">Shop</button>
+        <button id="skinsBtn" class="btn accent">Skins</button>
+        <button id="profileBtn" class="btn accent hidden">Profile</button>
+        <button id="alltimeBtn" class="btn">Leaderboard</button>
+      </div>
+
+      <div class="hint">
+        <div><b>Mouse</b> to steer &nbsp;·&nbsp; <b>Click / Space</b> to boost</div>
+        <div><b>Q</b> auto-spin &nbsp;·&nbsp; <b>G</b> low graphics</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== Login / Register ===== -->
+  <div id="loginScreen" class="overlay center-overlay hidden">
+    <div class="panel">
+      <h1 class="title">Account</h1>
+      <p class="subtitle" id="authModeLabel">Log in to track stats</p>
+
+      <div class="auth-tabs">
+        <button id="authLoginTab" class="btn primary tab-btn active">Login</button>
+        <button id="authRegisterTab" class="btn tab-btn">Register</button>
+      </div>
+
+      <div id="authError" class="auth-error hidden"></div>
+      <div id="authSuccess" class="auth-success hidden"></div>
+
+      <label class="field">
+        <span>Username</span>
+        <input id="authUsername" type="text" maxlength="16" placeholder="username" autocomplete="off" />
+      </label>
+      <label class="field">
+        <span>Password</span>
+        <input id="authPassword" type="password" maxlength="64" placeholder="password" autocomplete="off" />
+      </label>
+
+      <div class="menu-buttons">
+        <button id="authSubmitBtn" class="btn primary">Login</button>
+        <button id="authBackBtn" class="btn">Back</button>
+      </div>
+
+      <div class="hint">
+        <div>Or <button id="authGuestBtn" class="link-btn">play as guest</button></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== Profile ===== -->
+  <div id="profileScreen" class="overlay center-overlay hidden">
+    <div class="panel">
+      <h1 class="title">Profile</h1>
+      <p class="subtitle" id="profileUsername">—</p>
+
+      <div class="profile-stats">
+        <div class="profile-stat">
+          <span class="stat-label">High Score</span>
+          <span id="profileHighScore" class="stat-val">0</span>
+        </div>
+        <div class="profile-stat">
+          <span class="stat-label">Total Kills</span>
+          <span id="profileKills" class="stat-val">0</span>
+        </div>
+        <div class="profile-stat">
+          <span class="stat-label">Headshots</span>
+          <span id="profileHeadshots" class="stat-val">0</span>
+        </div>
+        <div class="profile-stat">
+          <span class="stat-label">Games Played</span>
+          <span id="profileGames" class="stat-val">0</span>
+        </div>
+        <div class="profile-stat">
+          <span class="stat-label">Deaths</span>
+          <span id="profileDeaths" class="stat-val">0</span>
+        </div>
+      </div>
+
+      <div class="menu-buttons">
+        <button id="profileBackBtn" class="btn">Back</button>
+        <button id="profileLogoutBtn" class="btn danger">Logout</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== Skins menu ===== -->
+  <div id="skinsMenu" class="overlay center-overlay hidden">
+    <div class="panel">
+      <h1 class="title">skins</h1>
+      <p class="subtitle">choose your look</p>
+      <canvas id="skinPreview" width="240" height="100"></canvas>
+      <div id="skinPickerFull" class="skin-picker-full"></div>
+      <button id="skinsBackBtn" class="btn">Back</button>
+    </div>
+  </div>
+
+  <!-- ===== All-Time Leaderboard ===== -->
+  <div id="alltimeScreen" class="overlay center-overlay hidden">
+    <div class="panel alltime-panel">
+      <h1 class="title">Leaderboard</h1>
+      <p class="subtitle">All-time top players</p>
+      <div class="alltime-tabs">
+        <button class="btn tab-btn active" data-tab="score">Top Score</button>
+        <button class="btn tab-btn" data-tab="kills">Top Kills</button>
+      </div>
+      <div id="alltimeList" class="alltime-list"></div>
+      <button id="alltimeBackBtn" class="btn">Back</button>
+    </div>
+  </div>
+
+  <!-- ===== Shop ===== -->
+  <div id="shopScreen" class="overlay center-overlay hidden">
+    <div class="panel shop-panel">
+      <h1 class="title">Shop</h1>
+      <div class="shop-coins"><span class="coin-icon">&#9679;</span> <span id="shopCoinCount">0</span></div>
+      <button id="dailyBtn" class="btn gold daily-btn">Claim Daily (50 coins)</button>
+      <div id="shopGrid" class="shop-grid"></div>
+      <button id="shopBackBtn" class="btn">Back</button>
+    </div>
+  </div>
+
+  <!-- ===== Death screen ===== -->
+  <div id="death" class="overlay center-overlay hidden">
+    <div class="death-red-flash"></div>
+    <div class="panel death-panel">
+      <h1 class="title dead">you died</h1>
+      <div class="death-stats">
+        <div><span class="stat-label">Mass</span><span id="deathScore" class="stat-val death-val">0</span></div>
+        <div><span class="stat-label">Rank</span><span id="deathRank" class="stat-val death-val">—</span></div>
+      </div>
+      <div class="death-buttons">
+        <button id="respawnBtn" class="btn primary death-btn-yellow">Play Again</button>
+        <button id="spectateBtn" class="btn death-btn-spectate">Spectate</button>
+        <button id="menuBtn" class="btn death-btn-menu">Main Menu</button>
+      </div>
+      <div class="hint">press <b>Enter</b> to respawn · <b>S</b> to spectate</div>
+    </div>
+  </div>
+
+  <!-- ===== Connecting banner ===== -->
+  <div id="connecting" class="overlay banner hidden">
+    <div class="panel small">Connecting to server…</div>
+  </div>
+
+  <!-- ===== HUD ===== -->
+  <div id="hud" class="hidden">
+    <div id="topLeft">
+      <div id="scoreBox" class="hud-box"><span class="hud-label">Mass</span><span id="scoreVal">0</span></div>
+      <div id="coinBox" class="hud-box small"><span class="coin-icon">&#9679;</span> <span id="coinVal">0</span></div>
+      <div id="fpsBox" class="hud-box small"><span id="fpsVal">60</span> fps · <span id="pingVal">—</span> ms</div>
+    </div>
+    <div id="leaderboard" class="hud-box">
+      <ol id="leaderboardList"></ol>
+      <div id="myRank" class="my-rank"></div>
+    </div>
+    <canvas id="minimap"></canvas>
+    <div id="boostVignette" class="hidden"></div>
+    <button id="boostBtn" class="touch-boost hidden">BOOST</button>
+    <div id="touchZone" class="touch-zone hidden"></div>
+  </div>
+
+  <!-- ===== Admin Panel (F2) ===== -->
+  <div id="adminPanel" class="admin-panel hidden">
+    <div class="admin-header">
+      <div class="admin-header-left">
+        <span class="admin-lock">&#128274;</span>
+        <span class="admin-title">Admin Panel</span>
+      </div>
+      <span class="admin-hint">F2 to close</span>
+    </div>
+    <label class="admin-field">
+      <span>Password</span>
+      <div class="admin-pwd-row">
+        <input id="adminPassword" type="password" placeholder="enter password" />
+        <button id="adminUnlockBtn" class="admin-btn accent">Unlock</button>
+      </div>
+    </label>
+    <div id="adminFeatures" class="admin-features hidden">
+      <div class="admin-section">
+        <span class="admin-section-title">Mass</span>
+        <div class="admin-row">
+          <input id="adminMassAmt" type="number" value="100" />
+          <button class="admin-btn" data-cmd="GIVE_MASS_SELF">Give Self</button>
+          <button class="admin-btn" data-cmd="GIVE_MASS_ALL">Give All</button>
+        </div>
+      </div>
+      <div class="admin-section">
+        <span class="admin-section-title">Bots</span>
+        <div class="admin-row">
+          <input id="adminBotCount" type="number" value="5" />
+          <input id="adminBotMass" type="number" value="0" />
+          <button class="admin-btn" data-cmd="SPAWN_BOTS_MASS">Spawn</button>
+        </div>
+        <div class="admin-row">
+          <input id="adminBotTarget" type="number" value="28" />
+          <button class="admin-btn" data-cmd="SET_BOT_TARGET">Set Target</button>
+        </div>
+      </div>
+      <div class="admin-section">
+        <span class="admin-section-title">Self</span>
+        <div class="admin-row">
+          <button class="admin-btn accent" data-cmd="GOD_MODE">God Mode</button>
+          <button class="admin-btn" data-cmd="SHRINK">Shrink (0)</button>
+        </div>
+        <div class="admin-row">
+          <input id="adminShrinkScore" type="number" value="0" />
+          <button class="admin-btn" data-cmd="SHRINK_CUSTOM">Set Score</button>
+        </div>
+        <div class="admin-row">
+          <select id="adminMultVal">
+            <option value="2">2x (60s)</option>
+            <option value="5">5x (35s)</option>
+            <option value="10">10x (20s)</option>
+            <option value="speed">Speed (40s)</option>
+            <option value="zoom">Zoom (50s)</option>
+          </select>
+          <button class="admin-btn accent" data-cmd="GIVE_BOOSTER">Give Booster</button>
+          <button class="admin-btn accent" data-cmd="GIVE_ALL_BOOSTERS">Give ALL</button>
+        </div>
+        <div class="admin-row">
+          <input id="adminSpeedVal" type="number" value="100" min="10" max="500" />
+          <button class="admin-btn" data-cmd="SET_SPEED">Set Speed %</button>
+        </div>
+        <div class="admin-row">
+          <input id="adminTeleportX" type="number" value="0" />
+          <input id="adminTeleportY" type="number" value="0" />
+          <button class="admin-btn" data-cmd="TELEPORT">Teleport</button>
+        </div>
+      </div>
+      <div class="admin-section">
+        <span class="admin-section-title">World</span>
+        <div class="admin-row">
+          <button class="admin-btn danger" data-cmd="KILL_ALL">Kill All</button>
+          <button class="admin-btn" data-cmd="CLEAR_FOOD">Clear Food</button>
+          <button class="admin-btn" data-cmd="REFILL_FOOD">Refill Food</button>
+        </div>
+        <div class="admin-row">
+          <button class="admin-btn danger" data-cmd="RESET_ARENA">Reset Arena</button>
+        </div>
+        <div class="admin-row">
+          <button class="admin-btn danger" data-cmd="RESET_PROFILES">Reset Profiles</button>
+        </div>
+      </div>
+      <div class="admin-section">
+        <span class="admin-section-title">Freeze</span>
+        <div class="admin-row">
+          <button class="admin-btn danger" data-cmd="FREEZE_ALL">Freeze ALL</button>
+          <button class="admin-btn" data-cmd="FREEZE_ME">Freeze Me</button>
+        </div>
+        <div class="admin-row">
+          <button class="admin-btn" data-cmd="FREEZE_OTHERS">Freeze Others</button>
+          <button class="admin-btn accent" data-cmd="UNFREEZE">Unfreeze All</button>
+        </div>
+      </div>
+      <div class="admin-section">
+        <span class="admin-section-title">Game Speed</span>
+        <div class="admin-row">
+          <input id="adminGameSpeed" type="range" min="25" max="1000" step="25" value="100" style="flex:1" />
+          <span id="adminSpeedLabel" style="min-width:50px;text-align:center;font-weight:700;color:#6ee84a;">1.00x</span>
+          <button class="admin-btn accent" data-cmd="GAME_SPEED">Set</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script type="module" src="/src/client/js/main.js"></script>
+</body>
+</html>

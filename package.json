@@ -1,0 +1,8 @@
+{
+  "name": "solsnake-idos",
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": { "dev": "vite --host 127.0.0.1", "build": "vite build --base=./" },
+  "dependencies": { "@idosgames/core": "0.21.5" },
+  "devDependencies": { "vite": "^7.0.0" }
+}
