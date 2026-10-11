@@ -4,6 +4,7 @@ import { RealtimeSession } from '@idosgames/core/realtime';
 import { Room } from '../../server/Room.js';
 import { decodeClientMessage, C2S } from '../../shared/protocol.js';
 import { IDOS_TITLE_ID } from '../../idos.title.js';
+import { SKINS } from '../../shared/colors.js';
 
 // Keep the original simulation and binary protocol. The browser hosting the
 // iDosGames room takes the place of the Node WebSocket server.
@@ -73,6 +74,12 @@ export default class PlatformNet extends Net {
         if (!player.alive) this.room.handleRespawn(player); break;
       case C2S.PING: this.room.handlePing(player, msg); break;
       case C2S.CHAT: this.room.handleChat(player, msg); break;
+      case C2S.SKIN:
+        if (Number.isInteger(msg.skin) && msg.skin >= 0 && msg.skin < SKINS.length) {
+          player.skin = msg.skin;
+          if (player.snake) player.snake.skin = msg.skin;
+        }
+        break;
     }
   }
 
@@ -81,6 +88,11 @@ export default class PlatformNet extends Net {
     if (bytes[0] === C2S.JOIN) this.lastJoin = bytes;
     if (!this.session || this.session.isHost) this.dispatch('self', bytes);
     else this.session.send(this.session.hostId, 'rel', bytes);
+  }
+
+  setSkin(skin) {
+    if (this.lastJoin) this.lastJoin[this.lastJoin.length - 1] = skin;
+    this._send(new Uint8Array([C2S.SKIN, skin]));
   }
 
   async findRoom(code) {
@@ -99,8 +111,10 @@ export default class PlatformNet extends Net {
     if (code && !/^[A-Z2-9]{8}$/.test(code)) throw new Error('Enter the 8-character room code.');
     this.busy = true;
     try {
-      const login = await this.client.auth.loginWithDeviceID();
-      if (!login.ok) throw new Error(login.error || `Platform login: ${login.reason}`);
+      if (!this.client.auth.isLoggedIn) {
+        const login = await this.client.auth.loginWithDeviceID();
+        if (!login.ok) throw new Error(login.error || `Platform login: ${login.reason}`);
+      }
       const available = code ? await this.findRoom(code) : null;
       if (code && !available) throw new Error('Room not found. Check the code or ask your friend to create a new room.');
       if (available && available.MemberCount >= available.MaxPlayers) throw new Error('Room is full (8 players).');

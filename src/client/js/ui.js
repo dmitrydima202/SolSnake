@@ -3,7 +3,7 @@
 // Keeps the Game/Renderer ignorant of HTML details.
 // ===========================================================================
 
-import { SKINS, RAINBOW_STOPS } from '../../shared/colors.js';
+import { SKINS, SKIN_PRICES, RAINBOW_STOPS } from '../../shared/colors.js';
 
 export class Ui {
   constructor() {
@@ -59,6 +59,7 @@ export class Ui {
     this.alltimeList = document.getElementById('alltimeList');
 
     this.selectedSkin = 0;
+    this._unlockedSkins = new Set([0, 1, 2, 3]);
     this._previewFrame = 0;
     this._previewAnimId = null;
     this._wormFrame = 0;
@@ -81,7 +82,10 @@ export class Ui {
       } else {
         sw.style.background = `radial-gradient(circle at 35% 35%, ${skin.glow}, ${skin.main} 55%, ${skin.shade})`;
       }
-      sw.title = skin.name;
+      sw.title = skin.name + (SKIN_PRICES[i] ? ` · Hold ${SKIN_PRICES[i].toLocaleString('en-US')} STICK` : ' · Free');
+      sw.setAttribute('role', 'button');
+      sw.tabIndex = 0;
+      sw.setAttribute('aria-label', sw.title);
       sw.dataset.idx = i;
 
       // Lock overlay for non-free skins
@@ -94,17 +98,25 @@ export class Ui {
       }
 
       sw.addEventListener('click', () => this._selectSkin(i));
+      sw.addEventListener('keydown', event => {
+        if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); this._selectSkin(i); }
+      });
       this.skinPickerFull.appendChild(sw);
     });
   }
 
   setUnlockedSkins(unlockedSet) {
-    this._unlockedSkins = unlockedSet;
+    this._unlockedSkins = new Set(unlockedSet);
     this.skinPickerFull.querySelectorAll('.skin-swatch-full').forEach(el => {
       const idx = parseInt(el.dataset.idx);
       const locked = unlockedSet && !unlockedSet.has(idx);
       el.classList.toggle('skin-locked', locked);
+      el.classList.toggle('locked-skin', locked);
+      el.setAttribute('aria-disabled', String(locked));
+      const lock = el.querySelector('.skin-lock');
+      if (lock) lock.hidden = !locked;
     });
+    if (!this._unlockedSkins.has(this.selectedSkin)) this._selectSkin(0);
   }
 
   _selectSkin(i) {
@@ -237,7 +249,7 @@ export class Ui {
     return v.length ? v : 'anon';
   }
 
-  getSkin() { return this.selectedSkin; }
+  getSkin() { return this._unlockedSkins.has(this.selectedSkin) ? this.selectedSkin : 0; }
 
   showMenu() { this.menu.classList.remove('hidden'); this._startWormAnim(); }
   hideMenu() { this.menu.classList.add('hidden'); }

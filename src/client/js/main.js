@@ -12,6 +12,7 @@ import Ui from './ui.js';
 import AdminPanel from './AdminPanel.js';
 import KillFeed from './KillFeed.js';
 import { Shop } from './Shop.js';
+import { StickWallet } from './StickWallet.js';
 
 const canvas = document.getElementById('game');
 
@@ -25,7 +26,8 @@ const adminPanel = new AdminPanel(net);
 const killFeed = new KillFeed();
 
 const game = new Game({ net, renderer, camera, input, hud, ui });
-const shop = new Shop(net, ui);
+const stickWallet = new StickWallet(net);
+const shop = new Shop(net, ui, stickWallet);
 
 const onlineBtn = document.getElementById('onlineBtn');
 const onlinePanel = document.getElementById('onlinePanel');
@@ -218,11 +220,14 @@ net.on('profileData', (d) => {
 
 
 // ---- Button wiring ----
-ui.playBtn.addEventListener('click', () => {
+ui.playBtn.addEventListener('click', async () => {
   if (!net.connected) return;
+  if (stickWallet.address) await stickWallet.refresh();
   game.join(ui.getName(), ui.getSkin());
 });
-ui.respawnBtn.addEventListener('click', () => {
+ui.respawnBtn.addEventListener('click', async () => {
+  if (stickWallet.address) await stickWallet.refresh();
+  net.setSkin(ui.getSkin());
   game.stopSpectating();
   game.respawn();
 });
@@ -239,6 +244,10 @@ ui.menuBtn.addEventListener('click', () => {
 ui.skinsBtn.addEventListener('click', () => {
   ui.hideMenu();
   ui.showSkins();
+  if (stickWallet.address) void stickWallet.refresh();
+});
+document.getElementById('skinsWalletBtn').addEventListener('click', () => {
+  ui.hideSkins(); shop.show();
 });
 ui.skinsBackBtn.addEventListener('click', () => {
   ui.hideSkins();

@@ -130,7 +130,9 @@
   <div id="skinsMenu" class="overlay center-overlay hidden">
     <div class="panel">
       <h1 class="title">skins</h1>
-      <p class="subtitle">choose your look</p>
+      <p class="subtitle">Hold STICK to unlock premium skins. Tokens are never spent.</p>
+      <p id="skinsWalletBalance" class="wallet-summary">Free skins are available without a wallet.</p>
+      <button id="skinsWalletBtn" class="btn accent">Wallet &amp; STICK requirements</button>
       <canvas id="skinPreview" width="240" height="100"></canvas>
       <div id="skinPickerFull" class="skin-picker-full"></div>
       <button id="skinsBackBtn" class="btn">Back</button>
@@ -155,8 +157,19 @@
   <div id="shopScreen" class="overlay center-overlay hidden">
     <div class="panel shop-panel">
       <h1 class="title">Shop</h1>
-      <div class="shop-coins"><span class="coin-icon">&#9679;</span> <span id="shopCoinCount">0</span></div>
-      <button id="dailyBtn" class="btn gold daily-btn">Claim Daily (50 coins)</button>
+      <p class="subtitle">Hold STICK in your wallet to use skins. No purchase or token transfer.</p>
+      <section class="stick-wallet" aria-label="STICK wallet">
+        <div class="wallet-balance"><span id="shopCoinCount">0</span> STICK</div>
+        <div id="stickWalletAddress" class="wallet-summary">Wallet not connected</div>
+        <div class="wallet-actions">
+          <button id="stickConnectBtn" class="btn accent">Connect Phantom</button>
+          <button id="stickSolflareBtn" class="btn">Solflare</button>
+          <button id="stickRefreshBtn" class="btn hidden">Refresh balance</button>
+          <button id="stickDisconnectBtn" class="btn hidden">Disconnect</button>
+        </div>
+        <p id="stickWalletStatus" class="wallet-summary" role="status" aria-live="polite"></p>
+        <p class="wallet-summary">Connection verifies ownership with a message signature. No transaction fee.</p>
+      </section>
       <div id="shopGrid" class="shop-grid"></div>
       <button id="shopBackBtn" class="btn">Back</button>
     </div>

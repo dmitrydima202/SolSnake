@@ -1,112 +1,139 @@
-# SolSnake
+# SolSnake — Multiplayer Snake Arena
 
-![Status: playable prototype](https://img.shields.io/badge/status-playable%20prototype-22d3ee)
-![Platform: iDos Games](https://img.shields.io/badge/platform-iDos%20Games-5522E0)
-![Solana: planned](https://img.shields.io/badge/Solana-integration%20planned-9945FF)
+> A browser snake game on iDos Games: join friends by room code and unlock cosmetic skins by holding STICK in a verified Solana wallet.
 
-> A browser snake arena with multiplayer rooms. Planned SNAKE token utility: unlock cosmetic skins by holding tokens in your wallet.
-
-[Play the live game](https://fpc8nue4.idos.games/) · [Architecture](docs/architecture.md) · [Roadmap](docs/roadmap.md) · [Presentation](docs/SolSnake.pptx)
+[Live Demo](https://fpc8nue4.idos.games/) · [Docs](docs/architecture.md) · [Token Utility](docs/token-utility.md)
 
 ![SolSnake gameplay](assets/gameplay.png)
 
-## Project and Team
+---
 
-| Name | Role |
-| --- | --- |
-| Дмитрий / Dmitry | Solo founder and builder |
+## Submission to 2026 Solana National Hackathon
 
-This repository contains the iDos Games browser edition. The live game is a prototype; the SNAKE token and wallet-based skin access are planned features. No hackathon acceptance, token deployment, user-growth figures or revenue are claimed.
+| Name | Role | Contact |
+| --- | --- | --- |
+| Дмитрий / Dmitry | Solo founder and builder | [GitHub](https://github.com/dmitrydima202) |
+
+Project materials prepared for a portfolio and hackathon. Submission and acceptance have not been confirmed. The game is a playable prototype; no user-growth or revenue figures are claimed.
+
+---
 
 ## Problem and Solution
 
-### Playing with friends
+### 1. Getting friends into the same game
 
-Players need an easy way to reach the same arena. SolSnake lets one player create a room and share an eight-character code; friends enter that code and join the same game.
+- **Problem:** Players need a simple way to share an arena.
+- **SolSnake:** Create a room, share its eight-character code, and join directly from the browser.
 
-### Giving a game token cosmetic utility
+### 2. Giving a game token visible utility
 
-The intended SNAKE mechanic links token holdings to visible cosmetic options. A qualifying wallet balance would unlock skins without spending those tokens. This is a product hypothesis to test, not validated demand.
+- **Problem:** A game token needs a clear use inside the game.
+- **SolSnake:** STICK holdings determine access to cosmetic skins. The minimum balance equals each skin's former game-currency price: for example, Rainbow requires 10,000 STICK. Tokens stay in the wallet.
 
-### Keeping the game playable without a wallet
+### 3. Keeping entry simple
 
-The current game runs in the browser with bots and guest multiplayer sessions. The proposed wallet flow applies to cosmetic eligibility, while the real-time simulation remains off-chain.
+- **Problem:** Requiring a wallet before playing adds friction.
+- **SolSnake:** Local play and guest rooms work with four free colors. A wallet is needed only for holder cosmetics.
+
+These are product hypotheses; demand and retention have not been measured.
+
+---
 
 ## Why Solana
 
-SNAKE is planned as the game's own token on Solana, linked to SolSnake on iDos Games. The proposed integration would verify wallet control and read holdings for the selected mint before deciding which skins are available.
+- **Existing token:** SolSnake uses the STICK token attached to iDos Games title `FPC8NUE4`; a new SNAKE token is not being launched.
+- **Readable holdings:** CloudCode queries confirmed token accounts for a verified wallet and the fixed STICK mint, summing balances with six decimals.
+- **No payment for access:** Connecting proves wallet ownership with an off-chain message. The game reads holdings without transferring or spending tokens.
+- **Off-chain gameplay:** Movement, collisions and multiplayer simulation run in a player's browser; no custom Solana program is deployed by this repository.
 
-Solana exposes token-account reads through [`getTokenAccountsByOwner`](https://solana.com/docs/rpc/http/gettokenaccountsbyowner). This is a basis for the planned balance check; it is not implemented in this repository yet. Mint address, balance thresholds and the balance recheck policy are still to be defined.
+Mint: `CdomqHDyfMGEDPpBzgLHMaP9N6DTnSfkW36dh8eSidos`.
 
-There is no deployed Solana program, wallet connection or live SNAKE mint in the current MVP. See [the planned token design](docs/token-utility.md).
+See [token utility and verification limits](docs/token-utility.md).
+
+---
 
 ## Summary of Features
 
-- Canvas snake arena: eat food, grow, boost and avoid collisions.
+- Canvas arena: eat food, grow, boost and avoid collisions.
 - Local play with bots.
-- Create a room, copy its code and join a friend's room.
-- Up to eight players per room; this is configured capacity, not a load-test result.
-- Browser-hosted simulation using iDos Games WebRTC sessions.
-- Skin selection and a shop interface with in-game currency prices.
-- Planned: wallet authentication, SNAKE balance checks and cosmetic eligibility.
+- Room creation, code sharing, joining and leaving.
+- Browser-hosted WebRTC multiplayer; configured room capacity of eight players.
+- Phantom / Solflare connection on the direct game URL and the iDos Games wallet bridge inside the platform.
+- CloudCode verification of wallet association and read-only STICK balance checks.
+- Holding tiers of 500, 1,000, 2,500, 5,000, 10,000 and 25,000 STICK; four free colors.
+- Balance refresh every 30 seconds and before play/respawn; unavailable or stale eligibility restores a free skin.
 
-**Current limitations:** Shop purchase and daily-reward messages are not handled by the browser networking adapter. Wallet-based access is not implemented. The host browser controls the simulation; it depends on the host's connection and can be modified by that host. Host handover starts a fresh round rather than preserving the arena.
+![STICK skin shop](assets/shop.png)
+
+**Verification:** Six automated checks cover thresholds, exact balances, ownership rejection, RPC failure, skin protocol validation and access revocation. The production build and free-skin Shop/play flows passed. Earlier room testing used two distinct guest clients. A real holder's wallet-signing and unlock flow still needs an end-to-end check; eight-player load and broad network compatibility remain untested.
+
+**Limitations:** The browser host controls the simulation and can modify it. Cosmetic selection is applied by the client; this is not tamper-proof entitlement enforcement. Host handover starts a fresh round. RPC outages temporarily lock holder skins. The wallet must be connected again after a page reload.
+
+---
 
 ## Tech Stack
 
 | Layer | Technology |
 | --- | --- |
-| Client and rendering | JavaScript ES modules · HTML Canvas · CSS |
+| Frontend | JavaScript ES modules · HTML Canvas · CSS |
 | Build | Vite 7.3.7 |
-| Game simulation | Shared JavaScript world running in the host browser |
-| Guest identity and room signaling | `@idosgames/core` 0.21.5 |
-| Peer transport | iDos Games `RealtimeSession` · WebRTC |
-| Distribution | iDos Games static game hosting |
-| Planned token utility | Solana wallet proof and SPL token balance checks |
+| Game simulation | Shared JavaScript world in the host browser |
+| Identity and room signaling | `@idosgames/core` 0.21.5 |
+| Wallet connection | `@idosgames/wallet` 0.6.4 |
+| Multiplayer transport | iDos Games `RealtimeSession` · WebRTC |
+| Token balance service | iDos Games CloudCode · Solana mainnet JSON-RPC |
+| Testing | Node.js built-in test runner |
+| Distribution | iDos Games static hosting |
+
+---
 
 ## Architecture
 
 ```mermaid
 flowchart LR
-    A[Guest player] <-->|WebRTC: inputs and snapshots| H[Host browser: world simulation]
-    B[Guest player] <-->|WebRTC: inputs and snapshots| H
-    A <-->|Identity and room signaling| I[iDos Games]
-    B <-->|Identity and room signaling| I
+    P[Guest player] <-->|WebRTC inputs and snapshots| H[Host browser: simulation]
+    P <-->|Identity and room signaling| I[iDos Games]
     H <-->|Identity and room signaling| I
+    W[Solana wallet] -->|Off-chain ownership message| I
+    P -->|Request holdings| C[iDos Games CloudCode]
+    C -->|Check player wallet association| I
+    C -->|Read fixed STICK mint balance| R[Solana mainnet RPC]
+    C -->|Verified balance| S[Client Shop: skin eligibility]
 ```
 
-The platform manages room membership and signaling. Game state is calculated by a player's browser; iDos Games is not running a dedicated SolSnake simulation server.
+The platform manages room signaling and the balance handler. A player's browser runs the arena. Room codes are invitations backed by public room names, not secret passwords.
 
-Room codes are invitation identifiers backed by public room names, not secret passwords. Empty or expired rooms cannot be joined. See [architecture and trust boundaries](docs/architecture.md).
+See [docs/architecture.md](docs/architecture.md) for components and trust boundaries.
+
+---
 
 ## Quick Start
 
-**Prerequisite:** Node.js 22.12 or newer.
+Prerequisite: Node.js 22.12 or newer.
 
 ```bash
+git clone https://github.com/dmitrydima202/SolSnake.git
+cd SolSnake
 npm ci
+npm test
 npm run dev
 ```
 
-Open the address printed by Vite. To build:
-
-```bash
-npm run build
-```
-
-The output is in `dist/`. The Vite build uses a relative asset base for iDos Games hosting. `src/idos.title.js` currently identifies the SolSnake title `FPC8NUE4`; use your own configured title when deploying a separate game.
+Open the address printed by Vite. Build for hosting with `npm run build`; output is in `dist/` with relative asset paths. `src/idos.title.js` targets `FPC8NUE4`. Local development uses the configured platform title for online services; running Vite alone does not deploy CloudCode.
 
 ### Play with friends
 
 1. Choose **Play Online → Create room**.
-2. Use **Copy code** and share the code with your friends.
-3. Friends choose **Play Online**, enter the code and press **Join**.
-4. Each participant presses **Play in room** after connecting.
-5. Use **Leave room** from the menu to return to local play.
+2. Copy and share the room code.
+3. Friends enter the code and choose **Join**.
+4. Each player chooses **Play in room**.
+5. **Leave room** returns to local play.
 
-For local testing with distinct guest identities, use separate browser profiles or the `localhost` and `127.0.0.1` origins. Tabs sharing the same origin may share the same guest identity.
+Use separate browser profiles or separate origins for distinct guest identities; tabs on one origin may share a guest identity.
 
-### Controls
+### Try holder cosmetics
+
+Open **Skins / Shop → Connect wallet**, approve the ownership message in your wallet, and refresh the balance. A sufficient STICK balance enables the corresponding skin and all lower tiers. No tokens are charged. See [CloudCode deployment instructions](docs/token-utility.md#deployment).
 
 | Action | Input |
 | --- | --- |
@@ -115,34 +142,39 @@ For local testing with distinct guest identities, use separate browser profiles 
 | Respawn | Play Again / Enter |
 | Low graphics | G |
 
-## Validation
-
-The browser edition was built and published on iDos Games. Two distinct guest clients were observed creating/joining one room by code and entering the game. Invalid-code feedback, copying a code, leaving and rejoining were checked. These checks do not establish eight-player capacity under load, broad network compatibility or resistance to a malicious host.
+---
 
 ## Roadmap
 
-- [x] Publish the playable browser prototype on iDos Games.
+- [x] Publish a playable browser prototype on iDos Games.
 - [x] Add room creation, code sharing and joining.
-- [x] Check gameplay with two distinct guest clients.
-- [ ] Choose SNAKE mint, token standard and skin balance thresholds.
-- [ ] Connect a wallet and verify control of its address.
-- [ ] Implement trusted balance checks and cosmetic eligibility.
-- [ ] Define what happens when the token balance falls below a threshold.
-- [ ] Test holder access, room stability and player retention.
-- [ ] Decide whether public arenas need a dedicated simulation server.
+- [x] Check one room with two distinct guest clients.
+- [x] Use the existing title's STICK mint and original skin-price thresholds.
+- [x] Implement wallet connection and verified-wallet balance checks.
+- [x] Publish the holder Shop, periodic refresh and access revocation.
+- [x] Add six automated checks and production build validation.
+- [ ] Verify a real holder's signing, unlock and balance-change flow end to end.
+- [ ] Test cross-network rooms, host departure and eight-player load.
+- [ ] Measure player participation and repeat play.
+- [ ] Evaluate stronger cosmetic enforcement and a dedicated simulation service.
 
 Full roadmap: [docs/roadmap.md](docs/roadmap.md).
 
+---
+
 ## Resources
 
-- [Live application](https://fpc8nue4.idos.games/)
+- [Live Application](https://fpc8nue4.idos.games/)
 - [iDos Games application page](https://idosgames.com/app/FPC8NUE4/)
-- [Project presentation](docs/SolSnake.pptx)
 - [Architecture](docs/architecture.md)
-- [Token utility proposal](docs/token-utility.md)
+- [STICK token utility](docs/token-utility.md)
+- [Original Project Presentation](docs/SolSnake.pptx) — historical pitch with the earlier planned SNAKE token; it has not yet been updated to STICK. Current implementation is described above.
+- Video demo and social links: not provided.
 
-## Attribution and License
+---
 
-This edition adapts the supplied `slither.clone` codebase; the original package declares MIT, but no standalone upstream license text was present in the supplied files. Upstream author and licensing provenance should be confirmed before broader redistribution. No new license grant is asserted here. See [NOTICE.md](NOTICE.md).
+## License
 
-Documentation structure follows [Marakaya/colosseum_example](https://github.com/Marakaya/colosseum_example), adapted to the actual SolSnake implementation. Presentation design follows the supplied Superteam / Spacekayak template. These references are not endorsements or partnerships.
+The supplied `slither.clone` package declares MIT, but its archive did not include standalone upstream license text or verified author attribution. No new repository-wide license grant is asserted. See [NOTICE.md](NOTICE.md) for provenance and third-party notices.
+
+Documentation follows the structure of [Marakaya/colosseum_example](https://github.com/Marakaya/colosseum_example), with project-specific content. Presentation design credits the supplied Superteam / Spacekayak template. These are references, not endorsements or partnerships.

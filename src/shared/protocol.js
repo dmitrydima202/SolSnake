@@ -29,6 +29,7 @@ export const C2S = {
   LEADERBOARD_ALLTIME: 12, // {} request all-time leaderboard
   BUY_SKIN: 13,       // { skinId:u8 }  purchase a skin
   CLAIM_DAILY: 14,    // {}  claim daily login bonus
+  SKIN: 15,          // { skin:u8 } update selected cosmetic
 };
 
 // Admin sub-commands (the `cmd` byte inside an ADMIN frame).
@@ -460,6 +461,10 @@ export function decodeClientMessage(u8) {
     }
     case C2S.RESPAWN:
       return { op };
+    case C2S.SKIN: {
+      const skin = r.u8();
+      return skin === undefined || skin >= SKINS.length ? null : { op, skin };
+    }
     case C2S.PING: {
       const t = r.u32();
       if (t === undefined) return null;
